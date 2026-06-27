@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalha de Pipas - JOGO</title>
+    <style>
+        body { 
+            margin: 0; 
+            background: linear-gradient(#6ec6ff, #dff4ff); 
+            font-family: 'Segoe UI', Arial; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            color: white; 
+            overflow: hidden; 
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        #top-header { 
+            width: 100vw; 
+            background: rgba(15, 15, 25, 0.95); 
+            padding: 10px 14px; 
+            box-sizing: border-box; 
+            border-bottom: 2px solid #ff3030; 
+            overflow: hidden;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        #ranking-marquee {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 22s linear infinite;
+            font-weight: bold;
+            font-size: 14px;
+            color: #00FFCC;
+            letter-spacing: 0.5px;
+        }
+        @keyframes marquee {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            flex: 1;
+            min-height: 0;
+        }
+        canvas { width: 100%; height: 100%; background: linear-gradient(#6ec6ff, #bce6ff); border: 2px solid #ff3030; border-top: none; display: block;}
+        
+        #festival-timer-display {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #ffd700;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 5px rgba(255,215,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+            display: none;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+
+        #podium-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            pointer-events: none;
+        }
+        .podium-spot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 380px;
+            width: 140px;
+            text-align: center;
+        }
+        .podium-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            object-fit: cover;
+            box-shadow: 0 0 15px rgba(255,255,255,0.4);
+            background: #222;
+        }
+        .podium-avatar.first { width: 120px; height: 120px; border-color: #ffd700; box-shadow: 0 0 25px #ffd700; }
+        .podium-avatar.second { border-color: #e0e0e0; box-shadow: 0 0 20px #e0e0e0; }
+        .podium-avatar.third { border-color: #cd7f32; box-shadow: 0 0 15px #cd7f32; }
+        .podium-name { font-weight: 900; font-size: 14px; margin-top: 10px; text-transform: uppercase; text-shadow: 0 2px 4px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .podium-cuts-badge { font-family: 'Consolas', monospace; font-size: 12px; font-weight: bold; color: #00ffcc; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(0,255,204,0.3); margin-top: 5px; }
+        .podium-base { width: 100%; margin-top: 15px; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .podium-base.first { height: 140px; background: linear-gradient(#ffd700, #b8860b); color: #000; }
+        .podium-base.second { height: 100px; background: linear-gradient(#e0e0e0, #7f8c8d); color: #000; }
+        .podium-base.third { height: 70px; background: linear-gradient(#cd7f32, #874e1d); color: #fff; }
+
+        #waiting-label { width: 100vw; text-align: left; font-size: 14px; color: #000; margin-top: 8px; font-weight: 900; padding-left: 10px; text-shadow: 1px 1px 0 #fff; text-transform: uppercase; letter-spacing: 0.5px;}
+        
+        #waiting-room { 
+            width: 100vw; 
+            height: 160px; 
+            background: rgba(15, 15, 25, 0.9); 
+            margin-top: 5px; 
+            border-radius: 12px; 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            grid-template-rows: repeat(2, 1fr); 
+            gap: 10px; 
+            padding: 12px; 
+            border: 2px solid #3a3a50; 
+            box-sizing: border-box; 
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+        .ranking-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); transition: all 0.2s ease; box-sizing: border-box; }
+        .ranking-left { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+        .ranking-pos { font-size: 13px; font-weight: 900; color: #ff3030; min-width: 25px; }
+        .ranking-pos.top1 { color: #ffd700; font-size: 14px; }
+        .ranking-pos.top2 { color: #e0e0e0; }
+        .ranking-pos.top3 { color: #cd7f32; }
+        .avatar-ranking { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ff3030; background: #222; object-fit: cover; flex-shrink: 0; }
+        .avatar-ranking.top1 { border-color: #ffd700; box-shadow: 0 0 5px #ffd700; }
+        .ranking-info { display: flex; flex-direction: column; overflow: hidden; }
+        .ranking-name { font-size: 13px; font-weight: bold; color: #ffffff; white-space: nowrap; overflow: hidden; text-transform: uppercase; }
+        .ranking-cuts { font-family: 'Consolas', monospace; font-size: 13px; font-weight: bold; color: #00ffcc; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(0,255,204,0.2); flex-shrink: 0; }
+        .festival-waiting-msg { grid-column: span 3; grid-row: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ff4500; font-size: 20px; font-weight: 900; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); animation: pulse 1.5s infinite alternate; }
+        .festival-waiting-sub { font-size: 12px; color: #888888; margin-top: 5px; font-weight: normal; letter-spacing: 0.5px; }
+        @keyframes pulse { 0% { transform: scale(0.98); opacity: 0.8; } 100% { transform: scale(1.02); opacity: 1; } }
+
+
+    </style>
+</head>
+<body>
+
+    <div id="top-header">
+        <div id="ranking-marquee">🏆 AGUARDANDO COMANDOS DA LIVE PARA GERAR O PLACAR AO VIVO...</div>
+    </div>
+
+    <div id="canvas-container">
+        <div id="festival-timer-display">👑 FESTIVAL COMEÇA EM: 00:00</div>
+        <div id="podium-display"></div>
+        <canvas id="game" width="1000" height="1000"></canvas>
+    </div>
+    
+    <div id="waiting-label">🔥 CLASSIFICAÇÃO TOP 6 DA LIVE:</div>
+    <div id="waiting-room"></div>
+
+
+
+<script>
+// ============================================================
+// CANAL DE COMUNICAÇÃO COM O PAINEL
+// ============================================================
+const gameChannel = new BroadcastChannel('batalha_pipas');
+
+gameChannel.onmessage = (event) => {
+    const msg = event.data;
+    if (!msg || !msg.type) return;
+
+    switch(msg.type) {
+        case 'PING':
+            gameChannel.postMessage({ type: 'PONG' });
+            break;
+        case 'TIKFINITY_STATUS':
+            break;
+        case 'EXECUTE_ACTION':
+            executeAction(msg.action, msg.user, msg.avatar);
+            break;
+        case 'SELF_SPAWN':
+            handleNewPipa(msg.user, "https://www.tiktok.com/favicon.ico", false, 1.0, "#ffffff", false);
+            break;
+        case 'TOGGLE_FESTIVAL':
+            toggleFestivalMode();
+            break;
+        case 'FESTIVAL_LOOP':
+            // atualizado via estado do painel — não precisa de ação aqui
+            festivalLoopEnabled = msg.enabled;
+            break;
+        case 'TOGGLE_AUDIO':
+            audioMutado = msg.muted;
+            break;
+        case 'RESET_RANKING':
+            winStats = {};
+            localStorage.removeItem('pipa_cut_stats');
+            updateWinRankingUI();
+            break;
+        case 'UPDATE_SETTINGS':
+            if (msg.likeThreshold !== undefined) likeThreshold = msg.likeThreshold;
+            if (msg.eventMappings !== undefined) {
+                eventMappings = msg.eventMappings;
+                localStorage.setItem('pipa_events', JSON.stringify(eventMappings));
+            }
+            if (msg.festPrepMin !== undefined) {
+                duracaoPrepMinutos = msg.festPrepMin;
+                localStorage.setItem('pipa_fest_prep', duracaoPrepMinutos);
+            }
+            if (msg.festCombatMin !== undefined) {
+                duracaoCombatMinutos = msg.festCombatMin;
+                localStorage.setItem('pipa_fest_combat', duracaoCombatMinutos);
+            }
+            if (msg.likeThreshold !== undefined) {
+                likeThreshold = msg.likeThreshold;
+                localStorage.setItem('pipa_like_threshold', likeThreshold);
+            }
+            break;
+    }
+};
+
+// Envia estado do jogo periodicamente para o painel
+function broadcastGameState() {
+    gameChannel.postMessage({
+        type: 'GAME_STATE',
+        festivalAtivo,
+        festivalEstado,
+        winStats,
+        pipasCount: pipas.length,
+        queueCount: waitingQueue.length,
+    });
+}
+setInterval(broadcastGameState, 2000);
+
+// ============================================================
+// JOGO
+// ============================================================
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+    const container = document.getElementById("canvas-container");
+    const rect = container.getBoundingClientRect();
+    canvas.width = Math.round(rect.width);
+    canvas.height = Math.round(rect.height);
+}
+resizeCanvas();
+let _resizeTimeout;
+window.addEventListener("resize", () => {
+    clearTimeout(_resizeTimeout);
+    _resizeTimeout = setTimeout(resizeCanvas, 150);
+});
+
+const PATH = "assets/";
+const avatarCache = {};
+
+const imgBackground = new Image();
+imgBackground.src = `${PATH}bground.png`;
+
+const imagensPipas = [];
+const caminhos = ['pipa.png', 'pipa2.png', 'pipa3.png'];
+caminhos.forEach(arq => {
+  const img = new Image();
+  img.src = `${PATH}${arq}`;
+  imagensPipas.push(img);
+});
+
+let pipas = [];
+let waitingQueue = []; 
+let particulas = []; 
+
+let likeCounter = 0;
+let likeCooldown = false;
+let audioMutado = false;
+let festivalLoopEnabled = false;
+
+let festivalAtivo = false;
+let festivalEstado = "prep"; 
+let festivalTimer = null;
+let tempoRestanteFestival = 0;
+let duracaoPrepMinutos = parseInt(localStorage.getItem('pipa_fest_prep')) || 2;
+let duracaoCombatMinutos = parseInt(localStorage.getItem('pipa_fest_combat')) || 5;
+
+let winStats = JSON.parse(localStorage.getItem('pipa_cut_stats')) || {}; 
+let eventMappings = JSON.parse(localStorage.getItem('pipa_events')) || { 
+    "membro": "SPAWN_RANDOM", 
+    "compartilhar": "SPAWN_RANDOM",
+    "5655": "CEROL", 
+    "rose": "CEROL",
+    "curtida_like": "CURA_15"
+};
+
+let likeThreshold = parseInt(localStorage.getItem('pipa_like_threshold')) || 10;
+let damageGlobalMultiplier = 0.3;
+
+function falarTexto(texto) {
+    if (audioMutado) return;
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); 
+        const utterance = new SpeechSynthesisUtterance(texto);
+        utterance.lang = 'pt-BR';
+        const voices = window.speechSynthesis.getVoices();
+        const voz = voices.find(v => v.name.includes('Camila') || v.name.includes('Google português do Brasil') || v.lang === 'pt-BR');
+        if (voz) utterance.voice = voz;
+        utterance.rate = 1.15; 
+        window.speechSynthesis.speak(utterance);
+    }
+}
+if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
+
+setInterval(() => {
+    if (audioMutado || festivalAtivo) return;
+    const sorted = Object.entries(winStats).sort((a, b) => b[1].cuts - a[1].cuts);
+    if (sorted.length === 0) return;
+    let falaRanking = "Atenção para o ranking atual da live. ";
+    if (sorted[0]) falaRanking += `Líder do ranking: ${sorted[0][0]} com ${sorted[0][1].cuts} cortes. `;
+    falarTexto(falaRanking);
+}, 300000);
+
+function toggleFestivalMode() {
+    const display = document.getElementById('festival-timer-display');
+    const podium = document.getElementById('podium-display');
+
+    if (!festivalAtivo) {
+        festivalAtivo = true;
+        display.style.display = "block";
+        winStats = {};
+        localStorage.removeItem('pipa_cut_stats');
+        updateWinRankingUI();
+        festivalEstado = "prep";
+        tempoRestanteFestival = duracaoPrepMinutos * 60;
+        falarTexto("O modo festival está ativo! Preparem-se!");
+        atualizarTextoCronometro();
+        if(festivalTimer) clearInterval(festivalTimer);
+        festivalTimer = setInterval(processarCronometroFestival, 1000);
+    } else {
+        finalizarModoFestival(false);
+    }
+    // Informa painel sobre novo estado
+    gameChannel.postMessage({ type: 'FESTIVAL_CHANGED', festivalAtivo, festivalEstado });
+}
+
+function processarCronometroFestival() {
+    if (!festivalAtivo) return;
+    if (tempoRestanteFestival > 0) {
+        tempoRestanteFestival--;
+        atualizarTextoCronometro();
+    } else {
+        if (festivalEstado === "prep") {
+            const podium = document.getElementById('podium-display');
+            podium.style.display = "none";
+            podium.innerHTML = "";
+            festivalEstado = "combat";
+            tempoRestanteFestival = duracaoCombatMinutos * 60;
+            atualizarTextoCronometro();
+            updateWinRankingUI(); 
+            falarTexto("O festival começou! Combate liberado!");
+        } else if (festivalEstado === "combat") {
+            finalizarModoFestival(true);
+        }
+    }
+}
+
+function atualizarTextoCronometro() {
+    const display = document.getElementById('festival-timer-display');
+    const minutos = String(Math.floor(tempoRestanteFestival / 60)).padStart(2, '0');
+    const segundos = String(tempoRestanteFestival % 60).padStart(2, '0');
+    if (festivalEstado === "prep") {
+        display.innerHTML = `👑 FESTIVAL COMEÇA EM: ${minutos}:${segundos}`;
+        display.style.borderColor = "#ffd700";
+        display.style.color = "#ffd700";
+    } else {
+        display.innerHTML = `⚔️ COMBATE TERMINA EM: ${minutos}:${segundos}`;
+        display.style.borderColor = "#ff3030";
+        display.style.color = "#ff3030";
+    }
+}
+
+function finalizarModoFestival(tempoAcabou) {
+    festivalAtivo = false;
+    if(festivalTimer) clearInterval(festivalTimer);
+    const display = document.getElementById('festival-timer-display');
+    const podium = document.getElementById('podium-display');
+    display.style.display = "none";
+
+    if (!tempoAcabou) {
+        podium.style.display = "none";
+        podium.innerHTML = "";
+    }
+
+    if (tempoAcabou) {
+        const sorted = Object.entries(winStats).sort((a, b) => b[1].cuts - a[1].cuts);
+        if (sorted.length > 0) {
+            falarTexto(`O festival terminou! O grande rei do festival é ${sorted[0][0]}!`);
+            const p1 = sorted[0] || null, p2 = sorted[1] || null, p3 = sorted[2] || null;
+            const avatar1 = p1 && p1[1].avatar ? p1[1].avatar : null;
+            const avatar2 = p2 && p2[1].avatar ? p2[1].avatar : null;
+            const avatar3 = p3 && p3[1].avatar ? p3[1].avatar : null;
+            let htmlPodio = "";
+            if(p2) htmlPodio += `<div class="podium-spot">${avatar2 ? `<img class="podium-avatar second" src="${avatar2}">` : `<div style="width:90px;height:90px;background:#222;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;border:4px solid #e0e0e0;box-shadow:0 0 20px #e0e0e0;">🪁</div>`}<div class="podium-name">${p2[0]}</div><div class="podium-cuts-badge">${p2[1].cuts} Cortes</div><div class="podium-base second">2</div></div>`;
+            else htmlPodio += `<div class="podium-spot"><div class="podium-base second" style="background:#222;color:#444;">-</div></div>`;
+            if(p1) htmlPodio += `<div class="podium-spot">${avatar1 ? `<img class="podium-avatar first" src="${avatar1}">` : `<div style="width:120px;height:120px;background:#ffd700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:50px;border:4px solid #ffd700;box-shadow:0 0 25px #ffd700;">👑</div>`}<div class="podium-name" style="font-size:16px;color:#ffd700;">${p1[0]}</div><div class="podium-cuts-badge" style="color:#ffd700;border-color:#ffd700;">${p1[1].cuts} Cortes</div><div class="podium-base first">1</div></div>`;
+            else htmlPodio += `<div class="podium-spot"><div class="podium-base first" style="background:#222;color:#444;">-</div></div>`;
+            if(p3) htmlPodio += `<div class="podium-spot">${avatar3 ? `<img class="podium-avatar third" src="${avatar3}">` : `<div style="width:90px;height:90px;background:#222;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;border:4px solid #cd7f32;box-shadow:0 0 15px #cd7f32;">🪁</div>`}<div class="podium-name">${p3[0]}</div><div class="podium-cuts-badge">${p3[1].cuts} Cortes</div><div class="podium-base third">3</div></div>`;
+            else htmlPodio += `<div class="podium-spot"><div class="podium-base third" style="background:#222;color:#444;">-</div></div>`;
+            podium.innerHTML = htmlPodio;
+            podium.style.display = "flex";
+        } else {
+            falarTexto("O festival terminou sem nenhum corte!");
+        }
+    } else {
+        falarTexto("O modo festival foi encerrado.");
+    }
+    festivalEstado = "prep";
+    updateWinRankingUI();
+    gameChannel.postMessage({ type: 'FESTIVAL_CHANGED', festivalAtivo: false, festivalEstado: 'prep' });
+
+    if (tempoAcabou && festivalLoopEnabled) {
+        setTimeout(() => { toggleFestivalMode(); }, 1500);
+    }
+}
+
+function updateWinRankingUI() {
+    const sorted = Object.entries(winStats).sort((a, b) => b[1].cuts - a[1].cuts);
+    if (festivalAtivo) {
+        if(festivalEstado === "prep") {
+            document.getElementById('ranking-marquee').innerHTML = `👑 MODO FESTIVAL ATIVADO: FAZENDO ENTRADA DE NOVOS JOGADORES NA ARENA... ENVIE SEU COMANDO! 👑`;
+        } else {
+            if(sorted.length === 0) document.getElementById('ranking-marquee').innerHTML = `⚔️ COMBATE DO FESTIVAL LIBERADO! CORTE SEUS ADVERSÁRIOS PARA ASSUMIR O TRONO! ⚔️`;
+            else document.getElementById('ranking-marquee').innerHTML = `👑 PLACAR DO FESTIVAL:    ${sorted.slice(0,5).map(([n,d],i)=>`⭐ ${i+1}º ${n.toUpperCase()} (${d.cuts} Cortes)`).join('    ')}    ⭐`;
+        }
+    } else {
+        if(sorted.length === 0) document.getElementById('ranking-marquee').innerHTML = `🏆 PLACAR AO VIVO: NENHUM CORTE REGISTRADO ATINJA O TOPO ENVIANDO SEU COMANDO!`;
+        else document.getElementById('ranking-marquee').innerHTML = `🏆 RANKING DE CORTES DA LIVE:    ${sorted.slice(0,5).map(([n,d],i)=>`⭐ ${i+1}º ${n.toUpperCase()} (${d.cuts} Cortes)`).join('    ')}    ⭐`;
+    }
+
+    const container = document.getElementById('waiting-room');
+    if (festivalAtivo && festivalEstado === "prep") {
+        container.innerHTML = `<div class="festival-waiting-msg"><span>👑 FESTIVAL COMEÇA EM...</span><span class="festival-waiting-sub">Aguardando a entrada e preparação de novos jogadores na arena</span></div>`;
+        return;
+    }
+    let htmlGrid = "";
+    for (let i = 0; i < 6; i++) {
+        if (sorted[i]) {
+            const [name, data] = sorted[i];
+            const avImg = data.avatar || avatarCache[name] || null;
+            const nomeExibicao = name.length > 14 ? name.substring(0, 14) + ".." : name;
+            let classePos = "", iconePos = `${i+1}º`, classeAvatar = "";
+            if (i === 0) { iconePos = "🥇 1º"; classePos = "top1"; classeAvatar = "top1"; }
+            else if (i === 1) { iconePos = "🥈 2º"; classePos = "top2"; }
+            else if (i === 2) { iconePos = "🥉 3º"; classePos = "top3"; }
+            htmlGrid += `<div class="ranking-card"><div class="ranking-left"><div class="ranking-pos ${classePos}">${iconePos}</div>${avImg ? `<img class="avatar-ranking ${classeAvatar}" src="${avImg}">` : `<div style="width:36px;height:36px;background:#ff3030;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:15px;border:2px solid #ff3030;flex-shrink:0;">🪁</div>`}<div class="ranking-info"><span class="ranking-name">${nomeExibicao}</span></div></div><div class="ranking-cuts">${data.cuts} C</div></div>`;
+        } else {
+            htmlGrid += `<div class="ranking-card" style="opacity:0.25;"><div class="ranking-left"><div class="ranking-pos">${i+1}º</div><div style="width:36px;height:36px;background:#222;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #444;flex-shrink:0;">-</div><div class="ranking-info"><span class="ranking-name">VAZIO</span></div></div><div class="ranking-cuts">0 C</div></div>`;
+        }
+    }
+    container.innerHTML = htmlGrid;
+
+    // Envia winStats atualizado para o painel
+    gameChannel.postMessage({ type: 'WIN_STATS_UPDATE', winStats });
+}
+
+function getIntersectionPoint(a,b,c,d,p,q,r,s){
+ const den=((a-b)*(r-s)-(c-d)*(p-q));
+ if(den===0) return null;
+ const t=((a-p)*(r-s)-(c-q)*(p-q))/den;
+ const u=-((a-b)*(c-q)-(c-d)*(a-p))/den;
+ if(t>0 && t<1 && u>0 && u<1) return { x: a + t * (b - a), y: c + t * (d - c) };
+ return null;
+}
+
+const MAX_PARTICULAS = 300;
+let _rankingDirty = false;
+let _rankingTimer = null;
+function scheduleRankingUpdate() {
+    if (_rankingDirty) return;
+    _rankingDirty = true;
+    _rankingTimer = setTimeout(() => { _rankingDirty = false; updateWinRankingUI(); }, 500);
+}
+
+let _saveStatsTimer = null;
+function scheduleSaveStats() {
+    clearTimeout(_saveStatsTimer);
+    _saveStatsTimer = setTimeout(() => {
+        localStorage.setItem('pipa_cut_stats', JSON.stringify(winStats));
+    }, 1000);
+}
+
+class Particula {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 4;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed - 1;
+    this.alpha = 1.0; 
+    this.decay = 0.02 + Math.random() * 0.03;
+    this.size = 1.5 + Math.random() * 2; 
+    this.gravity = 0.15;
+  }
+  update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.alpha -= this.decay; }
+  draw() {
+    ctx.save(); ctx.globalAlpha = this.alpha;
+    if (this.alpha > 0.7) { ctx.fillStyle = "#ffffff"; }
+    else if (this.alpha > 0.4) { ctx.fillStyle = "#ffdb4d"; }
+    else { ctx.fillStyle = "#ff5500"; }
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+}
+
+class Pipa {
+ constructor(nome, avatarUrl = null, isLarge = false, spawnMultiplier = 1.0, spawnLineColor = "#ffffff", spawnGlow = false){
+  this.nome = nome;
+  this.isLarge = isLarge;
+  this.x = 100 + Math.random() * (canvas.width - 200);
+  this.y = 50 + Math.random() * (canvas.height * 0.3);
+  this.anchorX = 50 + Math.random() * (canvas.width - 100);
+  this.anchorY = canvas.height;
+  this.anchorOffset = Math.random() * 100;
+  this.angle = Math.random() * Math.PI * 2;
+  this.wave = Math.random() * 100;
+  this.speed = 3.0;
+  this.hp = 100;
+  this.cortada = false;
+  this.dead = false;
+  this.damageMultiplier = spawnMultiplier;
+  this.lineColor = spawnLineColor;
+  this.glowActive = spawnGlow;
+  const baseWidth = 38.4, baseHeight = 48;
+  this.width = isLarge ? baseWidth * 1.5 : baseWidth;
+  this.height = isLarge ? baseHeight * 1.5 : baseHeight;
+  this.sprite = imagensPipas[Math.floor(Math.random() * imagensPipas.length)];
+  this.avatarUrl = avatarUrl;
+  this.avatarImg = null;
+  if (avatarUrl) {
+    if (!avatarCache[avatarUrl]) { const img = new Image(); img.src = avatarUrl; avatarCache[avatarUrl] = img; }
+    this.avatarImg = avatarCache[avatarUrl];
+  }
+  this.tail = [];
+  for(let i=0; i<22; i++) this.tail.push({x:this.x, y:this.y+i*8});
+ }
+
+ update(){
+  if(this.cortada){
+    this.angle += 0.12; this.y += 2.2; this.x += Math.sin(this.angle) * 1.5;
+    if(this.y > canvas.height + 80) this.dead = true;
+  } else {
+    this.wave += 0.03;
+    const chaoReal = canvas.height * 0.8;
+    const zonaDeAlerta = chaoReal - 50;
+    if (this.y > zonaDeAlerta) {
+      const proximidadeChao = (this.y - zonaDeAlerta) / (chaoReal - zonaDeAlerta);
+      let targetAngle = -Math.PI / 2;
+      let angleDiff = targetAngle - this.angle;
+      angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+      this.angle += angleDiff * 0.08 * proximidadeChao;
+    } else {
+      this.angle += Math.sin(this.wave) * 0.03 + (Math.random() - 0.5) * 0.12;
+    }
+    const margem = 75; let forcaCurva = 0.09; let tratadoPorQuina = false;
+    if (this.y < margem && (this.x < margem || this.x > canvas.width - margem)) {
+        tratadoPorQuina = true;
+        let targetAngle = Math.atan2(canvas.height * 0.5 - this.y, canvas.width * 0.5 - this.x);
+        let diff = Math.atan2(Math.sin(targetAngle - this.angle), Math.cos(targetAngle - this.angle));
+        this.angle += diff * (forcaCurva * 1.5);
+    }
+    if (!tratadoPorQuina) {
+        if (this.x < margem) { let fator=(margem-this.x)/margem; let tA=0; let d=Math.atan2(Math.sin(tA-this.angle),Math.cos(tA-this.angle)); this.angle+=d*forcaCurva*fator; }
+        else if (this.x > canvas.width - margem) { let fator=(this.x-(canvas.width-margem))/margem; let tA=Math.PI; let d=Math.atan2(Math.sin(tA-this.angle),Math.cos(tA-this.angle)); this.angle+=d*forcaCurva*fator; }
+        if (this.y < margem) { let fator=(margem-this.y)/margem; let tA=Math.PI/2; let d=Math.atan2(Math.sin(tA-this.angle),Math.cos(tA-this.angle)); this.angle+=d*forcaCurva*fator; }
+    }
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed;
+    if (this.x < 25) this.x = 25;
+    if (this.x > canvas.width - 25) this.x = canvas.width - 25;
+    if (this.y < 25) this.y = 25;
+    if (this.y > chaoReal) { this.y = chaoReal; this.angle = -Math.PI / 2; }
+    this.anchorX += Math.sin(performance.now() * 0.001 + this.anchorOffset) * 0.3;
+  }
+  const tailAngle = this.angle + Math.PI / 2;
+  this.tail[0] = { x: this.x - Math.sin(tailAngle) * (this.height/2), y: this.y + Math.cos(tailAngle) * (this.height/2) };
+  for(let i=1; i<this.tail.length; i++){
+    let p=this.tail[i-1], c=this.tail[i];
+    let dx=p.x-c.x, dy=p.y-c.y, d=Math.hypot(dx,dy);
+    if(d>10){ c.x=p.x-dx/d*10; c.y=p.y-dy/d*10; }
+    c.x += Math.sin(performance.now() * 0.005 + i * 0.4) * 0.32;
+    if(this.cortada) c.y += 0.5;
+  }
+ }
+
+ draw(){
+  if(!this.cortada){
+    ctx.save(); ctx.strokeStyle = this.lineColor; ctx.lineWidth = this.glowActive ? 4 : 2;
+    if(this.glowActive) { ctx.shadowBlur = 10; ctx.shadowColor = this.lineColor; }
+    ctx.beginPath(); ctx.moveTo(this.anchorX, this.anchorY); ctx.lineTo(this.x, this.y); ctx.stroke(); ctx.restore();
+  }
+  ctx.lineWidth = 2.5;
+  for(let i=1; i<this.tail.length; i++){
+    ctx.strokeStyle = "rgba(20,20,20,0.65)";
+    ctx.beginPath(); ctx.moveTo(this.tail[i-1].x, this.tail[i-1].y); ctx.lineTo(this.tail[i].x, this.tail[i].y); ctx.stroke();
+    if(i % 3 === 0){ ctx.fillStyle = (i % 6 === 0) ? "#ff3030" : "#ffffff"; ctx.beginPath(); ctx.arc(this.tail[i].x, this.tail[i].y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 0.8; ctx.stroke(); ctx.lineWidth = 2.5; }
+  }
+  ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle + Math.PI / 2);
+  if (this.sprite.complete && this.sprite.naturalWidth !== 0) {
+    if(this.cortada) ctx.globalAlpha = 0.6;
+    ctx.drawImage(this.sprite, -this.width/2, -this.height/2, this.width, this.height);
+  } else {
+    ctx.fillStyle = this.cortada ? "#999" : "#ff3030";
+    ctx.beginPath(); ctx.moveTo(0, -this.height/2); ctx.lineTo(this.width/2, 0); ctx.lineTo(0, this.height/2); ctx.lineTo(-this.width/2, 0); ctx.closePath(); ctx.fill();
+  }
+  if (!this.cortada && this.avatarImg && this.avatarImg.complete) {
+      const baseAvatarSize = 28.8;
+      const avatarSize = this.isLarge ? baseAvatarSize * 1.5 : baseAvatarSize;
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, avatarSize / 2, 0, Math.PI * 2); ctx.clip();
+      ctx.drawImage(this.avatarImg, -avatarSize / 2, -avatarSize / 2, avatarSize, avatarSize); ctx.restore();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, avatarSize / 2, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+  if(!this.cortada) {
+    ctx.fillStyle = "#222"; ctx.fillRect(this.x - 16, this.y - 28, 32, 4);
+    ctx.fillStyle = this.hp > 40 ? "#00ff00" : "#ff0000";
+    ctx.fillRect(this.x - 16, this.y - 28, (this.hp / 100) * 32, 4);
+  }
+ }
+}
+
+function handleNewPipa(userName, avatarUrl = null, isLarge = false, spawnMultiplier = 1.0, spawnLineColor = "#ffffff", spawnGlow = false) {
+    if (pipas.some(p => p.nome === userName) || waitingQueue.some(w => w.nome === userName)) return;
+    if (!winStats[userName]) { winStats[userName] = { cuts: 0, avatar: avatarUrl }; }
+    else { if(avatarUrl) winStats[userName].avatar = avatarUrl; }
+    const novaPipa = new Pipa(userName, avatarUrl, isLarge, spawnMultiplier, spawnLineColor, spawnGlow);
+    if (pipas.length < 50) { pipas.push(novaPipa); } else { waitingQueue.push(novaPipa); }
+    updateWinRankingUI();
+}
+
+function executeAction(action, user, avatar) {
+    if (action === "SPAWN_RANDOM") { handleNewPipa(user, avatar, false, 1.0, "#ffffff", false); }
+    else if (action === "SPAWN_LARGE") { handleNewPipa(user, avatar, true, 1.0, "#ffffff", false); }
+    else if (action === "SPAWN_CEROL") { handleNewPipa(user, avatar, false, 5.0, "#ff66cc", true); }
+    else if (action === "SPAWN_LARGE_CEROL") { handleNewPipa(user, avatar, true, 5.0, "#ff66cc", true); }
+    else if (action === "SPAWN_CEROL_FINO") { handleNewPipa(user, avatar, false, 10.0, "#66ff66", true); }
+    else if (action === "SPAWN_LARGE_CEROL_FINO") { handleNewPipa(user, avatar, true, 10.0, "#66ff66", true); }
+    else if (action === "SPAWN_CHILENA") { handleNewPipa(user, avatar, false, 15.0, "#ffff66", true); }
+    else if (action === "SPAWN_LARGE_CHILENA") { handleNewPipa(user, avatar, true, 15.0, "#ffff66", true); }
+    else {
+        const p = pipas.find(pipe => pipe.nome === user);
+        if (p && !p.cortada) {
+            if (action === "CEROL") { p.hp = Math.min(100, p.hp + 50); p.damageMultiplier = 5.0; p.lineColor = "#ff66cc"; p.glowActive = true; setTimeout(() => { p.damageMultiplier = 1.0; p.lineColor = "#ffffff"; p.glowActive = false; }, 10000); }
+            else if (action === "CEROL_FINO") { p.hp = Math.min(100, p.hp + 50); p.damageMultiplier = 10.0; p.lineColor = "#66ff66"; p.glowActive = true; setTimeout(() => { p.damageMultiplier = 1.0; p.lineColor = "#ffffff"; p.glowActive = false; }, 10000); }
+            else if (action === "CHILENA") { p.hp = Math.min(100, p.hp + 50); p.damageMultiplier = 15.0; p.lineColor = "#ffff66"; p.glowActive = true; setTimeout(() => { p.damageMultiplier = 1.0; p.lineColor = "#ffffff"; p.glowActive = false; }, 10000); }
+            else if (action === "CURA_15") p.hp = Math.min(100, p.hp + 15);
+            else if (action === "CURA_50") p.hp = Math.min(100, p.hp + 50);
+            else if (action === "CURA_100") p.hp = 100;
+        }
+    }
+    updateWinRankingUI();
+}
+
+function loop(){
+ if (imgBackground.complete && imgBackground.naturalWidth !== 0) { ctx.drawImage(imgBackground, 0, 0, canvas.width, canvas.height); }
+ else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+ for(const p of pipas) p.update();
+ for(let i=0; i<pipas.length; i++){
+  for(let j=i+1; j<pipas.length; j++){
+   const a = pipas[i], b = pipas[j];
+   if(a.cortada || b.cortada) continue;
+   const pontoEncontro = getIntersectionPoint(a.anchorX, a.x, a.anchorY, a.y, b.anchorX, b.x, b.anchorY, b.y);
+   if(pontoEncontro){
+      if (festivalAtivo && festivalEstado === "prep") {
+          if (Math.random() < 0.2 && particulas.length < MAX_PARTICULAS) particulas.push(new Particula(pontoEncontro.x, pontoEncontro.y));
+          continue; 
+      }
+      a.hp -= 0.25 * b.damageMultiplier * damageGlobalMultiplier;
+      b.hp -= 0.25 * a.damageMultiplier * damageGlobalMultiplier;
+      if (particulas.length < MAX_PARTICULAS) { const toAdd = Math.min(3, MAX_PARTICULAS - particulas.length); for(let k=0;k<toAdd;k++) particulas.push(new Particula(pontoEncontro.x, pontoEncontro.y)); }
+      if(a.hp <= 0 && !a.cortada){ a.cortada = true; b.hp = Math.min(100, b.hp + 5); if(!winStats[b.nome]) winStats[b.nome] = { cuts: 0, avatar: b.avatarUrl }; winStats[b.nome].cuts++; scheduleSaveStats(); scheduleRankingUpdate(); falarTexto(`${b.nome} cortou ${a.nome}`); }
+      if(b.hp <= 0 && !b.cortada){ b.cortada = true; a.hp = Math.min(100, a.hp + 5); if(!winStats[a.nome]) winStats[a.nome] = { cuts: 0, avatar: a.avatarUrl }; winStats[a.nome].cuts++; scheduleSaveStats(); scheduleRankingUpdate(); falarTexto(`${a.nome} cortou ${b.nome}`); }
+   }
+  }
+ }
+ for (let i = particulas.length - 1; i >= 0; i--) { particulas[i].update(); particulas[i].draw(); if (particulas[i].alpha <= 0) particulas.splice(i, 1); }
+ for(const p of pipas) p.draw();
+ for(let i = pipas.length - 1; i >= 0; i--) { if(pipas[i].dead) { pipas.splice(i, 1); if(waitingQueue.length > 0) pipas.push(waitingQueue.shift()); } }
+ requestAnimationFrame(loop);
+}
+
+updateWinRankingUI();
+loop();
+</script>
+</body>
+</html>
