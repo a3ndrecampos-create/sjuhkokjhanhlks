@@ -20,7 +20,7 @@ function createPanelWindow() {
     },
   });
 
-  panelWindow.loadFile('painel.html');
+  panelWindow.loadFile('index.html');
   panelWindow.setMenuBarVisibility(false);
 
   panelWindow.on('closed', () => {
