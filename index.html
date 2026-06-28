@@ -1107,13 +1107,23 @@ function renderEvents() {
     }).join('');
 }
 
+// Lock para evitar que o mesmo user+action dispare em cascata
+// enquanto o loop de repetições ainda está em andamento.
+const _pendingRepeats = new Set();
+
 function executeRepeated(action, user, avatar, repeat, audio) {
+    const lockKey = `${action}|${user}`;
+    if (_pendingRepeats.has(lockKey)) return; // já em execução para esse par
+    _pendingRepeats.add(lockKey);
+
     repeat = Math.max(1, repeat || 1);
     // Toca o áudio uma vez no início
     if (audio) playAudio(audio);
+
     for (let i = 0; i < repeat; i++) {
         setTimeout(() => {
             send({ type: 'EXECUTE_ACTION', action, user, avatar });
+            if (i === repeat - 1) _pendingRepeats.delete(lockKey); // libera ao final
         }, i * 500);
     }
 }
