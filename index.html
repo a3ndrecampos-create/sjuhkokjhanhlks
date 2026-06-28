@@ -3,214 +3,617 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batalha de Pipas - PAINEL</title>
+    <title>Batalha de Pipas — Painel</title>
     <style>
-        * { box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Rajdhani:wght@600;700&display=swap');
+
+        :root {
+            --red:      #e8312a;
+            --red-dim:  #7a1a16;
+            --red-glow: rgba(232,49,42,0.25);
+            --gold:     #f5c518;
+            --gold-dim: rgba(245,197,24,0.15);
+            --green:    #1db954;
+            --blue:     #2563eb;
+            --cyan:     #00e5cc;
+            --bg0:      #07080d;
+            --bg1:      #0d0e16;
+            --bg2:      #12131e;
+            --bg3:      #191a27;
+            --border:   #1e2030;
+            --border2:  #272838;
+            --text:     #e2e4f0;
+            --muted:    #5a5d7a;
+            --label:    #8890b0;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         html, body {
-            margin: 0;
-            background: #0a0a12;
-            font-family: 'Segoe UI', Arial;
-            color: white;
+            background: var(--bg0);
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            color: var(--text);
             height: 100vh;
             overflow: hidden;
-            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 0;
         }
 
-        h1 {
-            text-align: center;
-            font-size: 13px;
-            color: #ff3030;
-            margin: 0;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            border-bottom: 2px solid #ff3030;
-            padding-bottom: 6px;
+        /* ── HEADER ── */
+        #header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px 0;
             flex-shrink: 0;
         }
+        #header h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--red);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #header h1 span { color: var(--text); opacity: 0.5; }
 
-        /* Status bar */
+        #btn-open-game {
+            padding: 5px 14px;
+            background: transparent;
+            border: 1.5px solid var(--red);
+            color: var(--red);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        }
+        #btn-open-game:hover, #btn-open-game.active {
+            background: var(--red);
+            color: #fff;
+            box-shadow: 0 0 12px var(--red-glow);
+        }
+
+        /* ── STATUS BAR ── */
         #status-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid #222;
+            margin: 6px 12px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 10px;
+            padding: 5px 12px;
             flex-shrink: 0;
         }
-        .status-item { display: flex; align-items: center; gap: 5px; font-weight: bold; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #444; flex-shrink: 0; }
-        .dot.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
-        .dot.tikfinity { background: #3498db; box-shadow: 0 0 5px #3498db; }
-        .dot.festival { background: #ffd700; box-shadow: 0 0 5px #ffd700; }
-        #game-stats { font-size: 10px; color: #888; }
+        .status-item { display: flex; align-items: center; gap: 6px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.8px; color: var(--label); text-transform: uppercase; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border2); flex-shrink: 0; transition: background 0.3s, box-shadow 0.3s; }
+        .dot.online  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .dot.tikfinity{ background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+        .dot.festival { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+        #game-stats { font-size: 9.5px; color: var(--muted); font-weight: 500; }
+        #game-stats span { color: var(--cyan); font-weight: 700; }
 
-        /* Layout principal em 2 colunas */
+        /* ── DIVIDER LINE ── */
+        .divider { height: 1px; background: var(--border); margin: 0 12px; flex-shrink: 0; }
+
+        /* ── MAIN LAYOUT ── */
         #layout {
             flex: 1;
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto auto auto auto 1fr;
-            gap: 5px;
+            gap: 6px;
+            padding: 6px 12px 8px;
             min-height: 0;
+            overflow: hidden;
         }
 
-        /* Seções */
+        /* ── SECTIONS ── */
         .section {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 6px;
-            padding: 7px 9px;
+            background: var(--bg1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
         .section.full { grid-column: 1 / -1; }
         .section-title {
-            font-size: 10px;
-            color: #ff3030;
+            font-size: 9px;
+            color: var(--red);
             text-transform: uppercase;
-            font-weight: bold;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
+
+        /* ── FORMS ── */
         .form-row {
             display: flex;
             gap: 5px;
-            margin-bottom: 4px;
             align-items: center;
             flex-wrap: wrap;
         }
-        .input-dark {
-            padding: 4px 6px; background: #000; color: white;
-            border: 1px solid #333; border-radius: 4px; font-size: 10px;
-        }
-        .select-dark {
-            padding: 4px 6px; background: #000; color: white;
-            border: 1px solid #333; border-radius: 4px; font-size: 10px;
-            height: 26px;
-        }
-        .btn { padding: 4px 9px; border: none; color: white; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: 10px; }
-        .btn-red { background: #ff3030; }
-        .btn-red:hover { background: #d62424; }
-        .btn-green { background: #27ae60; }
-        .btn-green:hover { background: #219653; }
-        .btn-gray { background: #333; }
-        .btn-gray:hover { background: #444; }
-        .btn-blue { background: #2980b9; }
-        .btn-blue:hover { background: #2471a3; }
-        .btn-yellow { background: #f39c12; color: #000; }
-        .btn-yellow:hover { background: #e08e0b; }
-        .btn-test { background: #27ae60; color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; }
-        .btn-del { color: #ff3030; cursor: pointer; font-weight: bold; background: transparent; border: none; padding: 0 2px; font-size: 13px; }
+        label { font-size: 9.5px; color: var(--label); white-space: nowrap; }
 
-        /* Botão abrir jogo */
-        #btn-open-game {
-            display: block; width: 100%; padding: 7px;
-            background: #111; border: 2px solid #ff3030;
-            color: #ff3030; font-size: 12px; font-weight: 900;
-            letter-spacing: 1px; border-radius: 6px; cursor: pointer;
-            flex-shrink: 0;
-            transition: background 0.15s, color 0.15s;
+        .input-dark, .select-dark {
+            padding: 4px 7px;
+            background: var(--bg0);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            border-radius: 5px;
+            font-size: 10px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.15s;
         }
-        #btn-open-game:hover, #btn-open-game.active { background: #ff3030; color: #fff; }
+        .input-dark:focus, .select-dark:focus { border-color: var(--red); }
+        .select-dark { height: 26px; }
+        .input-dark::placeholder { color: var(--muted); }
 
-        /* Botão Kings */
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 4px 10px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+            border-radius: 5px;
+            font-size: 10px;
+            font-family: 'Inter', sans-serif;
+            transition: filter 0.15s, box-shadow 0.15s;
+            white-space: nowrap;
+        }
+        .btn:hover { filter: brightness(1.15); }
+        .btn:active { filter: brightness(0.9); }
+
+        .btn-red    { background: var(--red); }
+        .btn-green  { background: var(--green); }
+        .btn-blue   { background: var(--blue); }
+        .btn-gray   { background: var(--bg3); border: 1px solid var(--border2); }
+        .btn-yellow { background: var(--gold); color: #000; }
+
+        .btn-test {
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green);
+            padding: 2px 7px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 9.5px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .btn-test:hover { background: rgba(29,185,84,0.15); }
+
+        .btn-play {
+            background: transparent;
+            color: #a78bfa;
+            border: 1px solid #5b21b6;
+            padding: 2px 7px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 9.5px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .btn-play:hover { background: rgba(139,92,246,0.15); }
+
+        .btn-del {
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            padding: 0 2px;
+            font-size: 14px;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+        .btn-del:hover { color: var(--red); }
+
+        /* ── KINGS / FESTIVAL BTN ── */
         #btn-kings {
-            padding: 6px; background: #222; border: 1px solid #ffd700;
-            color: #ffd700; cursor: pointer; border-radius: 5px; font-size: 11px;
-            font-weight: 900; width: 100%;
+            padding: 6px 10px;
+            background: transparent;
+            border: 1.5px solid var(--gold);
+            color: var(--gold);
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            width: 100%;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
         }
-        #btn-kings.active { background: #ff3030; color: #fff; border-color: #8b0000; }
+        #btn-kings:hover { background: var(--gold-dim); }
+        #btn-kings.active { background: var(--red); color: #fff; border-color: var(--red-dim); box-shadow: 0 0 10px var(--red-glow); }
 
-        /* Player tools */
-        #player-name { padding: 4px 6px; background: #111; border: 1px solid #333; color: #ff3030; border-radius: 4px; font-size: 10px; width: 100%; text-transform: uppercase; margin-bottom: 4px; }
+        /* ── AUDIO BTN ── */
+        #btn-audio {
+            padding: 4px 8px;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            transition: border-color 0.15s;
+        }
+        #btn-audio:hover { border-color: var(--red); }
+        #btn-audio.muted { color: var(--red); border-color: var(--red-dim); }
 
-        /* Audio */
-        #btn-audio { padding: 4px 8px; background: #111; border: 1px solid #333; color: #fff; cursor: pointer; border-radius: 4px; font-size: 10px; font-weight: bold; width: 100%; margin-top: 4px; }
+        /* ── LOOP ── */
+        .loop-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--gold);
+            cursor: pointer;
+            user-select: none;
+        }
+        .loop-container input { cursor: pointer; width: 12px; height: 12px; accent-color: var(--gold); }
 
-        /* Loop */
-        .loop-container { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: bold; color: #ffd700; cursor: pointer; user-select: none; }
-        .loop-container input { cursor: pointer; width: 12px; height: 12px; accent-color: #ffd700; }
+        /* ── PLAYER NAME ── */
+        #player-name {
+            padding: 5px 8px;
+            background: var(--bg0);
+            border: 1px solid var(--border2);
+            color: var(--red);
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px;
+            width: 100%;
+            text-transform: uppercase;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        #player-name:focus { border-color: var(--red); box-shadow: 0 0 0 2px var(--red-glow); }
+        #player-name::placeholder { color: var(--muted); font-weight: 400; }
 
-        /* Event list */
-        .event-list-container { max-height: 80px; overflow-y: auto; background: #090909; border: 1px solid #222; border-radius: 4px; padding: 2px 4px; }
-        .event-item { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px; font-size: 10px; border-bottom: 1px solid #161616; }
-        .event-item:last-child { border-bottom: none; }
-        .event-actions-group { display: flex; gap: 4px; align-items: center; }
-
-        /* Grid de ações rápidas */
+        /* ── QUICK ACTIONS GRID ── */
         .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .quick-btn {
-            padding: 5px 2px; border: 1px solid #333; background: #161616;
-            color: white; cursor: pointer; border-radius: 5px; font-size: 9px;
-            font-weight: bold; text-align: center; transition: background 0.15s;
+            padding: 5px 2px;
+            border: 1px solid var(--border2);
+            background: var(--bg2);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            transition: background 0.15s, border-color 0.15s;
         }
-        .quick-btn:hover { background: #222; }
-        .quick-btn.cerol { border-color: #ff66cc; color: #ff66cc; }
-        .quick-btn.cerol:hover { background: rgba(255,102,204,0.1); }
-        .quick-btn.fino { border-color: #66ff66; color: #66ff66; }
-        .quick-btn.fino:hover { background: rgba(102,255,102,0.1); }
-        .quick-btn.chilena { border-color: #ffff66; color: #ffff66; }
-        .quick-btn.chilena:hover { background: rgba(255,255,102,0.1); }
+        .quick-btn:hover { background: var(--bg3); }
+        .quick-btn.cerol  { border-color: #d946ef; color: #d946ef; }
+        .quick-btn.cerol:hover { background: rgba(217,70,239,0.1); }
+        .quick-btn.fino   { border-color: #4ade80; color: #4ade80; }
+        .quick-btn.fino:hover { background: rgba(74,222,128,0.1); }
+        .quick-btn.chilena{ border-color: var(--gold); color: var(--gold); }
+        .quick-btn.chilena:hover { background: var(--gold-dim); }
 
-        label { font-size: 10px; color: #aaa; white-space: nowrap; }
+        /* ── EVENT LIST ── */
+        .event-list-container {
+            max-height: 82px;
+            overflow-y: auto;
+            background: var(--bg0);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border2) transparent;
+        }
+        .event-list-container::-webkit-scrollbar { width: 4px; }
+        .event-list-container::-webkit-scrollbar-track { background: transparent; }
+        .event-list-container::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-        /* Ranking mini */
-        #mini-ranking { font-size: 10px; color: #888; overflow-y: auto; max-height: 100%; }
-        .rank-line { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #1a1a1a; }
+        .event-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            font-size: 9.5px;
+            border-bottom: 1px solid var(--border);
+            gap: 4px;
+        }
+        .event-item:last-child { border-bottom: none; }
+        .event-item-label { flex: 1; min-width: 0; }
+        .event-item-label strong { color: var(--cyan); }
+        .event-item-label .ev-audio { font-size: 8.5px; color: var(--muted); margin-top: 1px; }
+        .event-actions-group { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+
+        /* ── RANKING ── */
+        #mini-ranking {
+            font-size: 10px;
+            color: var(--muted);
+            overflow-y: auto;
+            max-height: 100%;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border2) transparent;
+        }
+        .rank-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            border-bottom: 1px solid var(--border);
+        }
         .rank-line:last-child { border-bottom: none; }
-        .rank-name { color: #fff; }
-        .rank-cuts { color: #00ffcc; font-weight: bold; }
+        .rank-name { color: var(--text); font-weight: 500; }
+        .rank-cuts { color: var(--cyan); font-weight: 700; font-size: 10px; }
+
+        /* ── SUB-DIVIDERS ── */
+        .section-subtitle {
+            font-size: 8.5px;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            margin-top: 4px;
+            padding-top: 5px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* scrollbar global */
+        * { scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+
+        /* ── AUDIO PICKER MODAL ── */
+        #audio-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        #audio-modal-backdrop.open { display: flex; }
+
+        #audio-modal {
+            background: var(--bg1);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            width: 340px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+            overflow: hidden;
+        }
+        #audio-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px 8px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        #audio-modal-header span {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 1px;
+        }
+        #audio-modal-close {
+            background: transparent; border: none; color: var(--muted);
+            font-size: 18px; cursor: pointer; line-height: 1; padding: 0 2px;
+            transition: color 0.15s;
+        }
+        #audio-modal-close:hover { color: var(--red); }
+
+        #audio-modal-search {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        #audio-search-input {
+            width: 100%;
+            padding: 5px 9px;
+            background: var(--bg0);
+            border: 1px solid var(--border2);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 10px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+        #audio-search-input:focus { border-color: var(--red); }
+        #audio-search-input::placeholder { color: var(--muted); }
+
+        #audio-modal-folder {
+            padding: 5px 12px;
+            font-size: 8.5px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        #audio-modal-folder span { color: var(--cyan); }
+
+        #audio-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px;
+        }
+
+        .audio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: default;
+            border: 1px solid transparent;
+            transition: background 0.12s, border-color 0.12s;
+            margin-bottom: 2px;
+        }
+        .audio-item:hover { background: var(--bg3); border-color: var(--border2); }
+        .audio-item.selected { background: rgba(0,229,204,0.07); border-color: var(--cyan); }
+
+        .audio-item-icon { font-size: 13px; flex-shrink: 0; }
+        .audio-item-name {
+            flex: 1;
+            font-size: 10px;
+            color: var(--text);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .audio-item.selected .audio-item-name { color: var(--cyan); }
+
+        .audio-item-btns { display: flex; gap: 5px; flex-shrink: 0; }
+        .audio-btn-play {
+            background: transparent;
+            color: #a78bfa;
+            border: 1px solid #5b21b6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 700;
+            transition: background 0.12s;
+        }
+        .audio-btn-play:hover { background: rgba(139,92,246,0.2); }
+        .audio-btn-play.playing { color: var(--gold); border-color: var(--gold); }
+
+        .audio-btn-select {
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green);
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 700;
+            transition: background 0.12s;
+        }
+        .audio-btn-select:hover { background: rgba(29,185,84,0.15); }
+
+        #audio-modal-footer {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        #audio-selected-display {
+            font-size: 9px;
+            color: var(--muted);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #audio-selected-display.has-value { color: var(--cyan); }
+        #audio-modal-confirm {
+            padding: 5px 14px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: filter 0.15s;
+            flex-shrink: 0;
+        }
+        #audio-modal-confirm:hover { filter: brightness(1.15); }
+        #audio-modal-confirm:disabled { opacity: 0.4; cursor: default; filter: none; }
+
+        /* ── AUDIO PICKER TRIGGER BTN ── */
+        .btn-pick-audio {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            color: var(--label);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 9.5px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-pick-audio:hover { border-color: #a78bfa; color: #a78bfa; }
+        .btn-pick-audio.has-audio { border-color: var(--cyan); color: var(--cyan); }
     </style>
 </head>
 <body>
 
-<h1>🪁 Batalha de Pipas — Painel</h1>
-
-<button id="btn-open-game" onclick="toggleGame()">🎮 ABRIR JOGO</button>
-
-<!-- Status -->
-<div id="status-bar">
-    <div class="status-item"><div id="gameDot" class="dot"></div> JOGO</div>
-    <div class="status-item"><div id="tikfinityDot" class="dot"></div> TIKFINITY</div>
-    <div class="status-item"><div id="festivalDot" class="dot"></div> FESTIVAL</div>
-    <div id="game-stats">Pipas: <span id="stat-pipas">0</span> | Fila: <span id="stat-fila">0</span></div>
+<!-- HEADER -->
+<div id="header">
+    <h1>🪁 Batalha de Pipas <span>— PAINEL</span></h1>
+    <button id="btn-open-game" onclick="toggleGame()">🎮 ABRIR JOGO</button>
 </div>
+
+<!-- STATUS BAR -->
+<div id="status-bar">
+    <div class="status-item"><div id="gameDot" class="dot"></div> Jogo</div>
+    <div class="status-item"><div id="tikfinityDot" class="dot"></div> Tikfinity</div>
+    <div class="status-item"><div id="festivalDot" class="dot"></div> Festival</div>
+    <div id="game-stats">Pipas: <span id="stat-pipas">0</span> &nbsp;|&nbsp; Fila: <span id="stat-fila">0</span></div>
+</div>
+
+<div class="divider"></div>
 
 <div id="layout">
 
-    <!-- Coluna esquerda: Controles + Spawnar -->
+    <!-- Col Esq: Controles -->
     <div class="section">
         <div class="section-title">🎮 Controles</div>
         <button id="btn-kings" onclick="toggleFestival()">👑 KINGS: DESATIVADO</button>
-        <div style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
+        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
             <label class="loop-container">
                 <input type="checkbox" id="festivalLoopCheck" onchange="sendLoopState()"> LOOP
             </label>
-            <button id="btn-audio" style="flex:1;" onclick="toggleAudio()">🔊 LIGADO</button>
+            <button id="btn-audio" style="flex:1;" onclick="toggleAudio()">🔊 ÁUDIO: LIGADO</button>
         </div>
-        <div style="margin-top:5px;">
-            <button class="btn btn-red" style="width:100%;" onclick="resetRanking()">🗑️ RESETAR PLACAR</button>
-        </div>
+        <button class="btn btn-red" style="width:100%; margin-top:2px;" onclick="resetRanking()">🗑️ RESETAR PLACAR</button>
     </div>
 
-    <!-- Coluna direita: Spawnar jogador -->
+    <!-- Col Dir: Spawnar -->
     <div class="section">
-        <div class="section-title">➕ Spawnar</div>
+        <div class="section-title">➕ Spawnar Jogador</div>
         <input type="text" id="player-name" placeholder="NOME DO JOGADOR">
         <div style="display:flex; gap:4px;">
             <button class="btn btn-red" style="flex:1;" onclick="playerSelfSpawn()">Normal</button>
             <button class="btn btn-blue" style="flex:1;" onclick="playerSpawnLarge()">Grande</button>
         </div>
-        <div class="quick-actions" style="margin-top:4px;">
-            <button class="quick-btn cerol" onclick="quickAction('SPAWN_CEROL')">🌸 Cerol</button>
-            <button class="quick-btn fino" onclick="quickAction('SPAWN_CEROL_FINO')">💚 Fino</button>
+        <div class="quick-actions">
+            <button class="quick-btn cerol"   onclick="quickAction('SPAWN_CEROL')">🌸 Cerol</button>
+            <button class="quick-btn fino"    onclick="quickAction('SPAWN_CEROL_FINO')">💚 Fino</button>
             <button class="quick-btn chilena" onclick="quickAction('SPAWN_CHILENA')">⭐ Chilena</button>
-            <button class="quick-btn cerol" onclick="quickAction('SPAWN_LARGE_CEROL')">🌸 G+Cerol</button>
-            <button class="quick-btn fino" onclick="quickAction('SPAWN_LARGE_CEROL_FINO')">💚 G+Fino</button>
+            <button class="quick-btn cerol"   onclick="quickAction('SPAWN_LARGE_CEROL')">🌸 G+Cerol</button>
+            <button class="quick-btn fino"    onclick="quickAction('SPAWN_LARGE_CEROL_FINO')">💚 G+Fino</button>
             <button class="quick-btn chilena" onclick="quickAction('SPAWN_LARGE_CHILENA')">⭐ G+Chil.</button>
         </div>
     </div>
@@ -221,9 +624,7 @@
         <div class="form-row">
             <label>A cada</label>
             <input type="number" id="likeThresholdInput" class="input-dark" style="width:48px;text-align:center;" min="1" value="10">
-            <label>likes:</label>
-        </div>
-        <div class="form-row">
+            <label>likes →</label>
             <select id="likeActionSelect" class="select-dark" style="flex:1;">
                 <option value="CURA_15">+15% HP</option>
                 <option value="CURA_50">+50% HP</option>
@@ -233,7 +634,7 @@
         </div>
         <div class="form-row">
             <button class="btn btn-green" style="flex:1;" onclick="saveLikeConfig()">SALVAR</button>
-            <button class="btn-test" onclick="testTrigger('curtida_like')">TESTAR</button>
+            <button class="btn-test" onclick="testTrigger('curtida_like')">Testar</button>
         </div>
     </div>
 
@@ -251,12 +652,13 @@
                 <option value="SPAWN_CHILENA">+Chilena</option>
                 <option value="SPAWN_LARGE_CHILENA">G+Chilena</option>
             </select>
-            <button class="btn-test" onclick="testTrigger('membro')">OK</button>
         </div>
-        <div style="margin-top:4px;">
-            <button class="btn btn-green" style="width:100%;" onclick="saveMemberConfig()">SALVAR</button>
+        <div class="form-row">
+            <button class="btn btn-green" style="flex:1;" onclick="saveMemberConfig()">SALVAR</button>
+            <button class="btn-test" onclick="testTrigger('member')">Testar</button>
         </div>
-        <div class="section-title" style="margin-top:6px;">📤 Compartilhar</div>
+
+        <div class="section-subtitle">📤 Compartilhar</div>
         <div class="form-row">
             <select id="shareActionSelect" class="select-dark" style="flex:1;">
                 <option value="SPAWN_RANDOM">Spawn Aleat.</option>
@@ -268,14 +670,16 @@
                 <option value="SPAWN_CHILENA">+Chilena</option>
                 <option value="SPAWN_LARGE_CHILENA">G+Chilena</option>
             </select>
-            <button class="btn-test" onclick="testTrigger('compartilhar')">OK</button>
         </div>
-        <button class="btn btn-green" style="width:100%;margin-top:4px;" onclick="saveShareConfig()">SALVAR</button>
+        <div class="form-row">
+            <button class="btn btn-green" style="flex:1;" onclick="saveShareConfig()">SALVAR</button>
+            <button class="btn-test" onclick="testTrigger('compartilhar')">Testar</button>
+        </div>
     </div>
 
     <!-- Festival -->
     <div class="section">
-        <div class="section-title">🏆 Tempo Festival (KINGS)</div>
+        <div class="section-title">🏆 Tempo Festival</div>
         <div class="form-row">
             <label>Pacífico (min):</label>
             <input type="number" id="festPrepInput" class="input-dark" style="width:45px;text-align:center;" min="1" value="2">
@@ -290,10 +694,12 @@
     <!-- Presentes & Comandos -->
     <div class="section">
         <div class="section-title">🎁 Presentes & Comandos</div>
+
+        <!-- Linha 1: seletor de presente -->
         <div class="form-row">
             <select id="giftSelector" class="select-dark" style="flex:1;" onchange="syncGiftInput()">
-                <option value="">-- Presente --</option>
-                <option value="CUSTOM">-- CHAT --</option>
+                <option value="">— Presente —</option>
+                <option value="CUSTOM">— CHAT —</option>
                 <option value="14295">Dates</option>
                 <option value="6926">Basketball</option>
                 <option value="7250">Hot Water Bottle</option>
@@ -338,9 +744,11 @@
                 <option value="6369">Lion</option>
             </select>
         </div>
+
+        <!-- Linha 2: código + ação -->
         <div class="form-row">
-            <input type="text" id="cmdInput" placeholder="Código ou Palavra" class="input-dark" style="flex:1;">
-            <select id="actionSelect" class="select-dark" style="flex:1;">
+            <input type="text" id="cmdInput" placeholder="Código ou Palavra" class="input-dark" style="flex:1; min-width:60px;">
+            <select id="actionSelect" class="select-dark" style="flex:1; min-width:70px;">
                 <option value="SPAWN_RANDOM">Spawn Aleat.</option>
                 <option value="SPAWN_LARGE">Pipa Grande</option>
                 <option value="SPAWN_CEROL">+Cerol Rosa</option>
@@ -356,17 +764,47 @@
                 <option value="CURA_50">+50% HP</option>
                 <option value="CURA_100">+100% HP</option>
             </select>
-            <button class="btn btn-red" onclick="addEvent()">ADD</button>
         </div>
+
+        <!-- Linha 3: repetições + áudio + ADD -->
+        <div class="form-row" style="align-items:center; gap:5px;">
+            <label style="white-space:nowrap; font-size:9px;">🔁</label>
+            <input type="number" id="repeatInput" class="input-dark" value="1" min="1" max="20"
+                style="width:42px; text-align:center; flex-shrink:0;" title="Repetições (com 0.5s de delay entre cada)">
+            <button id="btn-pick-audio" class="btn-pick-audio" onclick="openAudioModal()">🔊 Escolher som...</button>
+            <button class="btn btn-red" style="padding:4px 10px; flex-shrink:0;" onclick="addEvent()">ADD</button>
+        </div>
+
+        <!-- Lista de eventos -->
         <div id="event-list" class="event-list-container"></div>
     </div>
 
     <!-- Ranking -->
     <div class="section full" style="min-height:0; flex:1;">
-        <div class="section-title">🏆 Ranking</div>
-        <div id="mini-ranking"><em style="color:#555;">Aguardando dados do jogo...</em></div>
+        <div class="section-title">🏆 Ranking — Cortes</div>
+        <div id="mini-ranking"><em style="color:var(--muted);">Aguardando dados do jogo...</em></div>
     </div>
 
+</div>
+
+<!-- ══ MODAL SELETOR DE ÁUDIO ══ -->
+<div id="audio-modal-backdrop" onclick="handleBackdropClick(event)">
+    <div id="audio-modal">
+        <div id="audio-modal-header">
+            <span>🔊 ESCOLHER SOM</span>
+            <button id="audio-modal-close" onclick="closeAudioModal()">✕</button>
+        </div>
+        <div id="audio-modal-search">
+            <input type="text" id="audio-search-input" placeholder="🔍 Filtrar sons..." oninput="filterAudioList(this.value)">
+        </div>
+        <div id="audio-modal-folder">Pasta: <span>assets/audio/</span></div>
+        <div id="audio-list"></div>
+        <div id="audio-modal-footer">
+            <div id="audio-selected-display">Nenhum som selecionado</div>
+            <button id="audio-modal-clear" class="btn btn-gray" style="padding:4px 10px; font-size:10px;" onclick="clearAudioSelection()">Remover</button>
+            <button id="audio-modal-confirm" onclick="confirmAudioSelection()" disabled>CONFIRMAR</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -378,14 +816,10 @@ let jogoOnline = false;
 let festivalAtivo = false;
 let audioMutado = false;
 
-// Ping periódico para verificar se o jogo está aberto
-function pingGame() {
-    gameChannel.postMessage({ type: 'PING' });
-}
+function pingGame() { gameChannel.postMessage({ type: 'PING' }); }
 setInterval(pingGame, 3000);
 pingGame();
 
-// Timeout para marcar jogo offline se não responder
 let gameOnlineTimeout = null;
 function markGameOnline() {
     jogoOnline = true;
@@ -440,51 +874,93 @@ function updateMiniRanking(winStats) {
     const sorted = Object.entries(winStats).sort((a, b) => b[1].cuts - a[1].cuts);
     const container = document.getElementById('mini-ranking');
     if (sorted.length === 0) {
-        container.innerHTML = '<em style="color:#555;">Nenhum corte registrado ainda.</em>';
+        container.innerHTML = '<em style="color:var(--muted);">Nenhum corte registrado ainda.</em>';
         return;
     }
     const medals = ['🥇','🥈','🥉'];
-    container.innerHTML = sorted.slice(0, 10).map(([name, data], i) => 
+    container.innerHTML = sorted.slice(0, 10).map(([name, data], i) =>
         `<div class="rank-line"><span class="rank-name">${medals[i] || `${i+1}º`} ${name}</span><span class="rank-cuts">${data.cuts} cortes</span></div>`
     ).join('');
 }
 
-function send(msg) {
-    gameChannel.postMessage(msg);
-}
+function send(msg) { gameChannel.postMessage(msg); }
 
 // ============================================================
 // ESTADO LOCAL
+// eventMappings: { key: { action, audio? } }
+// Compatibilidade: suporta valores string legados e novos objetos
 // ============================================================
-let eventMappings = JSON.parse(localStorage.getItem('pipa_events')) || { 
-    "membro": "SPAWN_RANDOM", 
-    "compartilhar": "SPAWN_RANDOM",
-    "5655": "CEROL", 
-    "rose": "CEROL",
-    "curtida_like": "CURA_15"
+function loadMappings() {
+    try {
+        const raw = JSON.parse(localStorage.getItem('pipa_events'));
+        if (!raw) return null;
+        // Migrar formato antigo (string) para novo (objeto)
+        const migrated = {};
+        for (const [k, v] of Object.entries(raw)) {
+            if (typeof v === 'string') migrated[k] = { action: v, audio: '' };
+            else migrated[k] = v;
+        }
+        return migrated;
+    } catch { return null; }
+}
+
+let eventMappings = loadMappings() || {
+    "member":       { action: "SPAWN_RANDOM", audio: "" },
+    "compartilhar": { action: "SPAWN_RANDOM", audio: "" },
+    "5655":         { action: "CEROL",        audio: "" },
+    "rose":         { action: "CEROL",        audio: "" },
+    "curtida_like": { action: "CURA_15",      audio: "" }
 };
-let likeThreshold = parseInt(localStorage.getItem('pipa_like_threshold')) || 10;
-let duracaoPrepMinutos = parseInt(localStorage.getItem('pipa_fest_prep')) || 2;
-let duracaoCombatMinutos = parseInt(localStorage.getItem('pipa_fest_combat')) || 5;
+
+// Helpers para compatibilidade
+function getAction(key) {
+    const v = eventMappings[key];
+    return v ? (typeof v === 'string' ? v : v.action) : undefined;
+}
+function getAudio(key) {
+    const v = eventMappings[key];
+    return v ? (typeof v === 'string' ? '' : (v.audio || '')) : '';
+}
+
+let likeThreshold       = parseInt(localStorage.getItem('pipa_like_threshold')) || 10;
+let duracaoPrepMinutos  = parseInt(localStorage.getItem('pipa_fest_prep'))      || 2;
+let duracaoCombatMinutos= parseInt(localStorage.getItem('pipa_fest_combat'))    || 5;
 
 // Inicializa campos
 document.getElementById('likeThresholdInput').value = likeThreshold;
-document.getElementById('festPrepInput').value = duracaoPrepMinutos;
-document.getElementById('festCombatInput').value = duracaoCombatMinutos;
-if(eventMappings["curtida_like"]) document.getElementById('likeActionSelect').value = eventMappings["curtida_like"];
-if(eventMappings["membro"]) document.getElementById('memberActionSelect').value = eventMappings["membro"];
-if(eventMappings["compartilhar"]) document.getElementById('shareActionSelect').value = eventMappings["compartilhar"];
+document.getElementById('festPrepInput').value      = duracaoPrepMinutos;
+document.getElementById('festCombatInput').value    = duracaoCombatMinutos;
+
+const likeAct = getAction('curtida_like');
+if (likeAct) document.getElementById('likeActionSelect').value = likeAct;
+const memberAct = getAction('member');
+if (memberAct) document.getElementById('memberActionSelect').value = memberAct;
+const shareAct = getAction('compartilhar');
+if (shareAct) document.getElementById('shareActionSelect').value = shareAct;
+
 renderEvents();
 
-// Envia configurações ao jogo quando ele entrar online
 setTimeout(() => sendAllSettings(), 500);
+
+function saveMappings() {
+    localStorage.setItem('pipa_events', JSON.stringify(eventMappings));
+}
+
+function buildEventMappingsForGame() {
+    // Para o jogo, envia só action (string) por chave
+    const flat = {};
+    for (const [k, v] of Object.entries(eventMappings)) {
+        flat[k] = typeof v === 'string' ? v : v.action;
+    }
+    return flat;
+}
 
 function sendAllSettings() {
     send({
         type: 'UPDATE_SETTINGS',
-        eventMappings,
+        eventMappings: buildEventMappingsForGame(),
         likeThreshold,
-        festPrepMin: duracaoPrepMinutos,
+        festPrepMin:   duracaoPrepMinutos,
         festCombatMin: duracaoCombatMinutos,
     });
 }
@@ -493,9 +969,7 @@ function sendAllSettings() {
 // FUNÇÕES DO PAINEL
 // ============================================================
 
-function toggleFestival() {
-    send({ type: 'TOGGLE_FESTIVAL' });
-}
+function toggleFestival() { send({ type: 'TOGGLE_FESTIVAL' }); }
 
 function sendLoopState() {
     const enabled = document.getElementById('festivalLoopCheck').checked;
@@ -505,8 +979,13 @@ function sendLoopState() {
 function toggleAudio() {
     audioMutado = !audioMutado;
     const btn = document.getElementById('btn-audio');
-    btn.innerHTML = audioMutado ? "🔇 ÁUDIO: MUTADO" : "🔊 ÁUDIO: LIGADO";
-    btn.style.color = audioMutado ? "#ff3030" : "#fff";
+    if (audioMutado) {
+        btn.innerHTML = "🔇 ÁUDIO: MUTADO";
+        btn.classList.add('muted');
+    } else {
+        btn.innerHTML = "🔊 ÁUDIO: LIGADO";
+        btn.classList.remove('muted');
+    }
     send({ type: 'TOGGLE_AUDIO', muted: audioMutado });
 }
 
@@ -531,14 +1010,14 @@ function quickAction(action) {
 function resetRanking() {
     if(confirm("Deseja zerar o placar de cortes?")) {
         send({ type: 'RESET_RANKING' });
-        document.getElementById('mini-ranking').innerHTML = '<em style="color:#555;">Placar zerado.</em>';
+        document.getElementById('mini-ranking').innerHTML = '<em style="color:var(--muted);">Placar zerado.</em>';
     }
 }
 
 function saveFestivalDurations() {
-    duracaoPrepMinutos = parseInt(document.getElementById('festPrepInput').value) || 2;
+    duracaoPrepMinutos   = parseInt(document.getElementById('festPrepInput').value)   || 2;
     duracaoCombatMinutos = parseInt(document.getElementById('festCombatInput').value) || 5;
-    localStorage.setItem('pipa_fest_prep', duracaoPrepMinutos);
+    localStorage.setItem('pipa_fest_prep',   duracaoPrepMinutos);
     localStorage.setItem('pipa_fest_combat', duracaoCombatMinutos);
     send({ type: 'UPDATE_SETTINGS', festPrepMin: duracaoPrepMinutos, festCombatMin: duracaoCombatMinutos });
     alert("Tempos do Festival salvos!");
@@ -547,123 +1026,371 @@ function saveFestivalDurations() {
 function saveLikeConfig() {
     likeThreshold = parseInt(document.getElementById('likeThresholdInput').value) || 10;
     localStorage.setItem('pipa_like_threshold', likeThreshold);
-    eventMappings["curtida_like"] = document.getElementById('likeActionSelect').value;
-    localStorage.setItem('pipa_events', JSON.stringify(eventMappings));
-    send({ type: 'UPDATE_SETTINGS', likeThreshold, eventMappings });
+    const act = document.getElementById('likeActionSelect').value;
+    eventMappings["curtida_like"] = { action: act, audio: getAudio("curtida_like") };
+    saveMappings();
+    send({ type: 'UPDATE_SETTINGS', likeThreshold, eventMappings: buildEventMappingsForGame() });
     renderEvents();
 }
 
 function saveMemberConfig() {
-    eventMappings["membro"] = document.getElementById('memberActionSelect').value;
-    localStorage.setItem('pipa_events', JSON.stringify(eventMappings));
-    send({ type: 'UPDATE_SETTINGS', eventMappings });
+    // Corrigido: chave "member" (não "membro") para ser reconhecida pelo painel
+    const act = document.getElementById('memberActionSelect').value;
+    eventMappings["member"] = { action: act, audio: getAudio("member") };
+    // Remove chave antiga "membro" se existir
+    delete eventMappings["membro"];
+    saveMappings();
+    send({ type: 'UPDATE_SETTINGS', eventMappings: buildEventMappingsForGame() });
     renderEvents();
 }
 
 function saveShareConfig() {
-    eventMappings["compartilhar"] = document.getElementById('shareActionSelect').value;
-    localStorage.setItem('pipa_events', JSON.stringify(eventMappings));
-    send({ type: 'UPDATE_SETTINGS', eventMappings });
+    const act = document.getElementById('shareActionSelect').value;
+    eventMappings["compartilhar"] = { action: act, audio: getAudio("compartilhar") };
+    saveMappings();
+    send({ type: 'UPDATE_SETTINGS', eventMappings: buildEventMappingsForGame() });
     renderEvents();
 }
 
-function addEvent() { 
-    const cmd = document.getElementById('cmdInput').value.trim().toLowerCase(); 
-    const act = document.getElementById('actionSelect').value; 
-    if(cmd) { 
-        eventMappings[cmd] = act; 
-        localStorage.setItem('pipa_events', JSON.stringify(eventMappings)); 
-        send({ type: 'UPDATE_SETTINGS', eventMappings });
-        renderEvents(); 
-    } 
+function addEvent() {
+    const cmd    = document.getElementById('cmdInput').value.trim().toLowerCase();
+    const act    = document.getElementById('actionSelect').value;
+    const audio  = currentSelectedAudio;
+    const repeat = Math.max(1, parseInt(document.getElementById('repeatInput').value) || 1);
+    if (!cmd) return;
+    eventMappings[cmd] = { action: act, audio, repeat };
+    saveMappings();
+    send({ type: 'UPDATE_SETTINGS', eventMappings: buildEventMappingsForGame() });
+    document.getElementById('cmdInput').value = '';
+    document.getElementById('repeatInput').value = '1';
+    document.getElementById('giftSelector').value = '';
+    currentSelectedAudio = '';
+    updatePickerBtn('');
+    renderEvents();
 }
 
-function removeEvent(cmd) { 
-    delete eventMappings[cmd]; 
-    localStorage.setItem('pipa_events', JSON.stringify(eventMappings)); 
-    send({ type: 'UPDATE_SETTINGS', eventMappings });
-    renderEvents(); 
+function removeEvent(cmd) {
+    delete eventMappings[cmd];
+    saveMappings();
+    send({ type: 'UPDATE_SETTINGS', eventMappings: buildEventMappingsForGame() });
+    renderEvents();
 }
 
-function renderEvents() { 
-    document.getElementById('event-list').innerHTML = Object.entries(eventMappings).map(([cmd, act]) => {
-        return `<div class="event-item"><span><strong>${cmd}</strong> &rarr; ${act}</span><div class="event-actions-group"><button class="btn-test" onclick="testTrigger('${cmd}')">Testar</button><button class="btn-del" onclick="removeEvent('${cmd}')">&times;</button></div></div>`;
-    }).join(''); 
+function renderEvents() {
+    const entries = Object.entries(eventMappings);
+    if (entries.length === 0) {
+        document.getElementById('event-list').innerHTML =
+            '<div style="padding:6px 8px;font-size:9.5px;color:var(--muted);">Nenhum evento cadastrado.</div>';
+        return;
+    }
+    document.getElementById('event-list').innerHTML = entries.map(([cmd, v]) => {
+        const act    = typeof v === 'string' ? v : v.action;
+        const audio  = typeof v === 'string' ? '' : (v.audio || '');
+        const repeat = typeof v === 'object' && v.repeat > 1 ? v.repeat : 1;
+        const audioName = audio ? audio.split('/').pop().replace('.mp3','').replace('.wav','') : '';
+        const metaHtml = [
+            repeat > 1 ? `🔁 ${repeat}x` : '',
+            audio ? `🔊 ${audioName}` : ''
+        ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+        const safeCmd = cmd.replace(/'/g, "\\'");
+        return `<div class="event-item">
+            <div class="event-item-label">
+                <strong>${cmd}</strong> → ${act}
+                ${metaHtml ? `<div class="ev-audio">${metaHtml}</div>` : ''}
+            </div>
+            <div class="event-actions-group">
+                <button class="btn-test" onclick="testTrigger('${safeCmd}')">Testar</button>
+                <button class="btn-play" onclick="openAudioModal('${safeCmd}')" title="${audio ? 'Trocar som' : 'Adicionar som'}">🔊</button>
+                <button class="btn-del"  onclick="removeEvent('${safeCmd}')">&times;</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function executeRepeated(action, user, avatar, repeat, audio) {
+    repeat = Math.max(1, repeat || 1);
+    // Toca o áudio uma vez no início
+    if (audio) playAudio(audio);
+    for (let i = 0; i < repeat; i++) {
+        setTimeout(() => {
+            send({ type: 'EXECUTE_ACTION', action, user, avatar });
+        }, i * 500);
+    }
 }
 
 function testTrigger(key) {
-    const action = eventMappings[key];
-    if (!action) return;
+    const v = eventMappings[key];
+    if (!v) return;
+    const action = typeof v === 'string' ? v : v.action;
+    const audio  = typeof v === 'string' ? '' : (v.audio || '');
+    const repeat = typeof v === 'object' && v.repeat > 1 ? v.repeat : 1;
     let testUser = "TESTE_LIVE";
-    if(key === "curtida_like") testUser = "LIKES_TEST";
-    if(key === "membro") testUser = "MEMBRO_TEST";
-    if(key === "compartilhar") testUser = "SHARE_TEST";
-    send({ type: 'EXECUTE_ACTION', action, user: testUser, avatar: 'https://www.tiktok.com/favicon.ico' });
+    if (key === "curtida_like") testUser = "LIKES_TEST";
+    if (key === "member")       testUser = "MEMBRO_TEST";
+    if (key === "compartilhar") testUser = "SHARE_TEST";
+    executeRepeated(action, testUser, 'https://www.tiktok.com/favicon.ico', repeat, audio);
+}
+
+function previewAudio(path) {
+    if (!path) return;
+    playAudio(path);
+}
+
+let currentPreviewAudio = null;
+function playAudio(path) {
+    try {
+        if (currentPreviewAudio) { currentPreviewAudio.pause(); currentPreviewAudio = null; }
+        const a = new Audio(path);
+        currentPreviewAudio = a;
+        a.play().catch(e => alert("Não foi possível tocar o áudio: " + path + "\n" + e.message));
+    } catch(e) {
+        alert("Erro ao tocar: " + path);
+    }
+}
+
+// ============================================================
+// MODAL SELETOR DE ÁUDIO
+// ============================================================
+
+// Lista completa de sons da pasta assets/audio/
+const AUDIO_FILES = [
+    { file: "ai-que-delicia-mickey.mp3",              label: "Ai que delícia (Mickey)" },
+    { file: "ana-online-audio-converter.mp3",          label: "Ana" },
+    { file: "a-risada-do-kiko.mp3",                    label: "A risada do Kiko" },
+    { file: "efeitos-sonoros-brasil-sil-sil-rede-globo.mp3", label: "Sil Sil (Globo)" },
+    { file: "ele-fezz-de-novo-incansavel.mp3",          label: "Ele fez de novo (incansável)" },
+    { file: "fahhhhhhhhhhhhhh.mp3",                    label: "Fahhhhh!" },
+    { file: "fogos-caruaru-foguete-12x1-8.mp3",        label: "Fogos Caruaru (foguete)" },
+    { file: "galaxy-meme.mp3",                         label: "Galaxy Meme" },
+    { file: "michael-jackson-hee-hee.mp3",             label: "Michael Jackson - Hee Hee!" },
+    { file: "mlg-airhorn.mp3",                         label: "MLG Airhorn 🎺" },
+    { file: "obigado-amigo.mp3",                       label: "Obrigado amigo" },
+    { file: "o-homem-uma-maquina-uma-besta-enjaulada.mp3", label: "Uma máquina, uma besta enjaulada" },
+    { file: "yeah-boiii-i-i-i.mp3",                    label: "Yeah Boiiii! 🐸" },
+    { file: "yippeeeeeeeeeeeeee.mp3",                  label: "Yippeeeee! 🎉" },
+];
+
+const AUDIO_BASE = "assets/audio/";
+let currentSelectedAudio = ""; // caminho completo ou vazio
+let modalPlayingBtn = null;    // botão ▶ atualmente tocando no modal
+
+function buildAudioList(filter = "") {
+    const list = document.getElementById('audio-list');
+    const filtered = filter
+        ? AUDIO_FILES.filter(a => a.label.toLowerCase().includes(filter.toLowerCase()) || a.file.toLowerCase().includes(filter.toLowerCase()))
+        : AUDIO_FILES;
+
+    if (filtered.length === 0) {
+        list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:10px;">Nenhum som encontrado.</div>';
+        return;
+    }
+
+    list.innerHTML = filtered.map(a => {
+        const path = AUDIO_BASE + a.file;
+        const isSelected = currentSelectedAudio === path;
+        return `<div class="audio-item${isSelected ? ' selected' : ''}" data-path="${path}" id="ai-${a.file}">
+            <div class="audio-item-icon">🎵</div>
+            <div class="audio-item-name" title="${a.file}">${a.label}</div>
+            <div class="audio-item-btns">
+                <button class="audio-btn-play" onclick="modalPlayAudio('${path}', '${a.file}', this)" title="Ouvir">▶</button>
+                <button class="audio-btn-select" onclick="selectAudio('${path}', '${a.label}')" title="Selecionar">✔</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function filterAudioList(val) { buildAudioList(val); }
+
+function modalPlayAudio(path, file, btn) {
+    // Para botão anterior
+    if (modalPlayingBtn && modalPlayingBtn !== btn) {
+        modalPlayingBtn.textContent = '▶';
+        modalPlayingBtn.classList.remove('playing');
+    }
+    if (currentPreviewAudio) { currentPreviewAudio.pause(); currentPreviewAudio = null; }
+
+    if (btn.textContent === '⏹') {
+        btn.textContent = '▶';
+        btn.classList.remove('playing');
+        modalPlayingBtn = null;
+        return;
+    }
+
+    try {
+        const a = new Audio(path);
+        currentPreviewAudio = a;
+        btn.textContent = '⏹';
+        btn.classList.add('playing');
+        modalPlayingBtn = btn;
+        a.play().catch(() => { btn.textContent = '▶'; btn.classList.remove('playing'); });
+        a.onended = () => { btn.textContent = '▶'; btn.classList.remove('playing'); modalPlayingBtn = null; };
+    } catch(e) { btn.textContent = '▶'; }
+}
+
+function selectAudio(path, label) {
+    currentSelectedAudio = path;
+    // Visual: marca o item
+    document.querySelectorAll('.audio-item').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById('ai-' + path.replace(AUDIO_BASE, ''));
+    if (el) el.classList.add('selected');
+    // Footer
+    const disp = document.getElementById('audio-selected-display');
+    disp.textContent = "✔ " + label;
+    disp.classList.add('has-value');
+    document.getElementById('audio-modal-confirm').disabled = false;
+}
+
+function clearAudioSelection() {
+    currentSelectedAudio = '';
+    document.querySelectorAll('.audio-item').forEach(el => el.classList.remove('selected'));
+    const disp = document.getElementById('audio-selected-display');
+    disp.textContent = 'Nenhum som selecionado';
+    disp.classList.remove('has-value');
+    document.getElementById('audio-modal-confirm').disabled = true;
+}
+
+function confirmAudioSelection() {
+    closeAudioModal();
+    updatePickerBtn(currentSelectedAudio);
+}
+
+function updatePickerBtn(path) {
+    const btn = document.getElementById('btn-pick-audio');
+    if (path) {
+        const name = path.split('/').pop().replace('.mp3','').replace('.wav','');
+        btn.innerHTML = `🔊 ${name}`;
+        btn.classList.add('has-audio');
+    } else {
+        btn.innerHTML = '🔊 Escolher som...';
+        btn.classList.remove('has-audio');
+    }
+}
+
+function openAudioModal(callbackKey) {
+    // Se veio de um evento existente, pré-seleciona
+    if (callbackKey) {
+        window._audioModalCallback = callbackKey;
+        currentSelectedAudio = getAudio(callbackKey);
+    } else {
+        window._audioModalCallback = null;
+    }
+    buildAudioList();
+    // Pré-seleciona no footer se já há audio
+    if (currentSelectedAudio) {
+        const found = AUDIO_FILES.find(a => AUDIO_BASE + a.file === currentSelectedAudio);
+        if (found) {
+            const disp = document.getElementById('audio-selected-display');
+            disp.textContent = "✔ " + found.label;
+            disp.classList.add('has-value');
+            document.getElementById('audio-modal-confirm').disabled = false;
+        }
+    } else {
+        clearAudioSelection();
+    }
+    document.getElementById('audio-search-input').value = '';
+    document.getElementById('audio-modal-backdrop').classList.add('open');
+}
+
+function closeAudioModal() {
+    if (currentPreviewAudio) { currentPreviewAudio.pause(); currentPreviewAudio = null; }
+    if (modalPlayingBtn) { modalPlayingBtn.textContent = '▶'; modalPlayingBtn.classList.remove('playing'); modalPlayingBtn = null; }
+    document.getElementById('audio-modal-backdrop').classList.remove('open');
+    // Se veio de um evento existente, salva
+    if (window._audioModalCallback) {
+        const key = window._audioModalCallback;
+        const v = eventMappings[key];
+        if (v) {
+            eventMappings[key] = {
+                action: typeof v === 'string' ? v : v.action,
+                audio: currentSelectedAudio,
+                repeat: typeof v === 'object' ? (v.repeat || 1) : 1
+            };
+            saveMappings();
+            send({ type: 'UPDATE_SETTINGS', eventMappings: buildEventMappingsForGame() });
+            renderEvents();
+        }
+        window._audioModalCallback = null;
+    }
+}
+
+function handleBackdropClick(e) {
+    if (e.target === document.getElementById('audio-modal-backdrop')) closeAudioModal();
 }
 
 function syncGiftInput() {
     const sel = document.getElementById('giftSelector').value;
-    if(sel && sel !== "CUSTOM") document.getElementById('cmdInput').value = sel;
-    else if(sel === "CUSTOM") document.getElementById('cmdInput').value = "";
+    if (sel && sel !== "CUSTOM") document.getElementById('cmdInput').value = sel;
+    else if (sel === "CUSTOM")   document.getElementById('cmdInput').value = "";
 }
 
 // ============================================================
-// TIKFINITY — conecta aqui no painel e repassa ao jogo
+// TIKFINITY
 // ============================================================
-let likeCounter = 0;
+let likeCounter  = 0;
 let likeCooldown = false;
 
 function connectTikFinity() {
     const socket = new WebSocket('ws://localhost:21213/');
-    socket.onopen = () => { 
+    socket.onopen = () => {
         document.getElementById('tikfinityDot').className = 'dot tikfinity';
         send({ type: 'TIKFINITY_STATUS', online: true });
     };
     socket.onmessage = (event) => {
         const res = JSON.parse(event.data);
-        const d = res.data || res;
+        const d   = res.data || res;
         if (!d) return;
-        
-        let user = d.nickname || d.uniqueId || "Jogador";
+
+        let user   = d.nickname || d.uniqueId || "Jogador";
         let avatar = d.profilePictureUrl || d.profilePicUrl || d.avatar || null;
-        const ev = (res.event || "").toLowerCase();
-        
+        const ev   = (res.event || "").toLowerCase();
+
         if (ev === "gift") {
-            const giftId = String(d.giftId || "");
+            const giftId   = String(d.giftId   || "");
             const giftName = String(d.giftName || "").toLowerCase().trim();
-            if (eventMappings[giftId]) { send({ type: 'EXECUTE_ACTION', action: eventMappings[giftId], user, avatar }); } 
-            else if (eventMappings[giftName]) { send({ type: 'EXECUTE_ACTION', action: eventMappings[giftName], user, avatar }); }
-            return; 
+            let triggerKey = eventMappings[giftId] ? giftId : (eventMappings[giftName] ? giftName : null);
+            if (triggerKey) {
+                const v      = eventMappings[triggerKey];
+                const action = getAction(triggerKey);
+                const audio  = getAudio(triggerKey);
+                const repeat = typeof v === 'object' && v.repeat > 1 ? v.repeat : 1;
+                executeRepeated(action, user, avatar, repeat, audio);
+            }
+            return;
         }
-        
+
         let triggerKey = "";
         let count = 1;
-        if (ev === "chat") triggerKey = (d.comment || "").toLowerCase().trim();
+        if      (ev === "chat")    triggerKey = (d.comment || "").toLowerCase().trim();
         else if (ev === "command") triggerKey = (d.command || "").toLowerCase();
-        else if (ev === "share") triggerKey = "compartilhar";
-        else if (ev === "like") { triggerKey = "curtida_like"; count = parseInt(d.likeCount) || 1; }
+        else if (ev === "share")   triggerKey = "compartilhar";
+        else if (ev === "like")    { triggerKey = "curtida_like"; count = parseInt(d.likeCount) || 1; }
+        // Tikfinity envia "member" para novos membros
+        else if (ev === "member" || ev === "subscribe") triggerKey = "member";
         else triggerKey = ev;
 
         if (!triggerKey) return;
-        const action = eventMappings[triggerKey];
+        const action = getAction(triggerKey);
         if (action) {
+            const v      = eventMappings[triggerKey];
+            const audio  = getAudio(triggerKey);
+            const repeat = typeof v === 'object' && v.repeat > 1 ? v.repeat : 1;
             if (triggerKey === "curtida_like") {
                 if (likeCooldown) return;
                 likeCounter += count;
                 if (likeCounter >= likeThreshold) {
                     likeCooldown = true;
-                    send({ type: 'EXECUTE_ACTION', action, user, avatar });
+                    executeRepeated(action, user, avatar, repeat, audio);
                     setTimeout(() => { likeCooldown = false; likeCounter = 0; }, 2000);
                 }
             } else {
-                send({ type: 'EXECUTE_ACTION', action, user, avatar });
+                executeRepeated(action, user, avatar, repeat, audio);
             }
         }
     };
-    socket.onclose = () => { 
+    socket.onclose = () => {
         document.getElementById('tikfinityDot').className = 'dot';
         send({ type: 'TIKFINITY_STATUS', online: false });
-        setTimeout(connectTikFinity, 5000); 
+        setTimeout(connectTikFinity, 5000);
     };
 }
 
@@ -680,7 +1407,6 @@ function toggleGame() {
         gameWindowOpen = !gameWindowOpen;
         updateGameBtn();
     } else {
-        // Fallback browser: abre popup
         window.open('jogo.html', 'jogo', 'width=1280,height=800');
     }
 }
