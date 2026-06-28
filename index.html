@@ -1137,31 +1137,46 @@ function previewAudio(path) {
 }
 
 let currentPreviewAudio = null;
+let currentPlayPromise = null;
 function playAudio(path) {
-    try {
-        // Não chamamos pause() no áudio anterior aqui: cada chamada de playAudio
-        // cria seu próprio elemento <audio> independente, então sons disparados
-        // em sequência (likes, repeats, etc.) podem se sobrepor sem conflitar
-        // entre si e sem gerar o erro "play() interrupted by pause()".
-        const a = new Audio(path);
-        currentPreviewAudio = a;
-        a.play().catch(e => {
-            // AbortError ocorre quando o play() é interrompido por um pause()
-            // (ex: troca rápida de preview no modal) — não é um erro real,
-            // então ignoramos silenciosamente.
-            if (e.name === 'AbortError') return;
-            console.warn("Não foi possível tocar o áudio:", path, e.message);
-        });
-    } catch(e) {
-        console.warn("Erro ao tocar:", path, e);
+    // Guarda referência do áudio que está tocando agora, para cortá-lo
+    // com segurança (sem disparar o erro play()/pause()) antes de iniciar o novo.
+    const previous = currentPreviewAudio;
+    const previousPromise = currentPlayPromise;
+
+    const a = new Audio(path);
+    currentPreviewAudio = a;
+
+    const stopPrevious = () => {
+        if (previous) {
+            try { previous.pause(); previous.currentTime = 0; } catch(e) {}
+        }
+    };
+
+    // O navegador só permite pause() com segurança depois que a Promise
+    // de play() do áudio anterior foi resolvida (ou rejeitada). Por isso
+    // esperamos ela "assentar" antes de cortar o som anterior, mesmo que
+    // isso leve poucos milissegundos — assim nunca disparamos o erro
+    // "play() interrupted by pause()".
+    if (previousPromise && typeof previousPromise.then === 'function') {
+        previousPromise.then(stopPrevious, stopPrevious);
+    } else {
+        stopPrevious();
     }
+
+    currentPlayPromise = a.play();
+    currentPlayPromise.catch(e => {
+        // AbortError/NotAllowedError ao trocar de som rapidamente não é um
+        // erro real para o usuário — nunca mostramos alert, só logamos.
+        console.warn("Não foi possível tocar o áudio:", path, e && e.message);
+    });
 }
 
 // Função separada para o preview do modal, onde QUEREMOS parar o som anterior
 // ao trocar de seleção (esse pause() controlado é intencional e seguro).
 function stopPreviewAudio() {
     if (currentPreviewAudio) {
-        currentPreviewAudio.pause();
+        try { currentPreviewAudio.pause(); } catch(e) {}
         currentPreviewAudio = null;
     }
 }
