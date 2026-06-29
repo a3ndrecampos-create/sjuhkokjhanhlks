@@ -223,12 +223,13 @@ gameChannel.onmessage = (event) => {
     }
 };
 
-// Envia estado do jogo periodicamente para o painel — SEM winStats (pesado), só contadores
+// Envia estado do jogo periodicamente para o painel
 function broadcastGameState() {
     gameChannel.postMessage({
         type: 'GAME_STATE',
         festivalAtivo,
         festivalEstado,
+        winStats,
         pipasCount: pipas.length,
         queueCount: waitingQueue.length,
     });
@@ -298,23 +299,10 @@ let damageGlobalMultiplier = 0.3;
 
 let _falarTimer = null;
 let _falarTextoFila = "";
-let _vozCacheada = null;
-
-// Cacheia a voz uma única vez ao carregar
-function _carregarVoz() {
-    if (!('speechSynthesis' in window)) return;
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-        _vozCacheada = voices.find(v => v.name.includes('Camila') || v.name.includes('Google português do Brasil') || v.lang === 'pt-BR') || null;
-    }
-}
-if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = _carregarVoz;
-    _carregarVoz();
-}
-
 function falarTexto(texto) {
     if (audioMutado) return;
+    // Debounce: acumula o último texto e só fala após 150ms de silêncio,
+    // evitando que cortes em cascata travem a thread via speechSynthesis.
     _falarTextoFila = texto;
     clearTimeout(_falarTimer);
     _falarTimer = setTimeout(() => {
@@ -322,11 +310,14 @@ function falarTexto(texto) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(_falarTextoFila);
         utterance.lang = 'pt-BR';
-        if (_vozCacheada) utterance.voice = _vozCacheada;
+        const voices = window.speechSynthesis.getVoices();
+        const voz = voices.find(v => v.name.includes('Camila') || v.name.includes('Google português do Brasil') || v.lang === 'pt-BR');
+        if (voz) utterance.voice = voz;
         utterance.rate = 1.15;
         window.speechSynthesis.speak(utterance);
     }, 150);
 }
+if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
 
 setInterval(() => {
     if (audioMutado || festivalAtivo) return;
@@ -490,11 +481,13 @@ function getIntersectionPoint(a,b,c,d,p,q,r,s){
 }
 
 const MAX_PARTICULAS = 300;
+let _rankingDirty = false;
 let _rankingTimer = null;
 function scheduleRankingUpdate() {
-    // clearTimeout + reagendar sempre: garante que só executa após 500ms de calmaria
-    clearTimeout(_rankingTimer);
+    if (_rankingDirty) return;
+    _rankingDirty = true;
     _rankingTimer = setTimeout(() => {
+        _rankingDirty = false;
         try { updateWinRankingUI(); } catch(e) { console.error('[Ranking] Erro ao atualizar UI:', e); }
     }, 500);
 }
@@ -520,30 +513,13 @@ class Particula {
     this.gravity = 0.15;
   }
   update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.alpha -= this.decay; }
-}
-
-// Desenha todas as partículas em batch por faixa de alpha (3 grupos → 3 path calls em vez de 300)
-function drawParticulas() {
-    if (particulas.length === 0) return;
-    const grupos = [
-        { cor: "#ffffff", lista: [] },
-        { cor: "#ffdb4d", lista: [] },
-        { cor: "#ff5500", lista: [] },
-    ];
-    for (const p of particulas) {
-        const g = p.alpha > 0.7 ? 0 : p.alpha > 0.4 ? 1 : 2;
-        grupos[g].lista.push(p);
-    }
-    for (const { cor, lista } of grupos) {
-        if (lista.length === 0) continue;
-        ctx.beginPath();
-        for (const p of lista) {
-            ctx.moveTo(p.x + p.size, p.y);
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        }
-        ctx.fillStyle = cor;
-        ctx.fill();
-    }
+  draw() {
+    ctx.save(); ctx.globalAlpha = this.alpha;
+    if (this.alpha > 0.7) { ctx.fillStyle = "#ffffff"; }
+    else if (this.alpha > 0.4) { ctx.fillStyle = "#ffdb4d"; }
+    else { ctx.fillStyle = "#ff5500"; }
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
 }
 
 class Pipa {
@@ -632,18 +608,11 @@ class Pipa {
     if(this.glowActive) { ctx.shadowBlur = 10; ctx.shadowColor = this.lineColor; }
     ctx.beginPath(); ctx.moveTo(this.anchorX, this.anchorY); ctx.lineTo(this.x, this.y); ctx.stroke(); ctx.restore();
   }
-  // Cauda em um único path contínuo (1 stroke em vez de 22)
   ctx.lineWidth = 2.5;
-  ctx.strokeStyle = "rgba(20,20,20,0.65)";
-  ctx.beginPath();
-  ctx.moveTo(this.tail[0].x, this.tail[0].y);
-  for(let i=1; i<this.tail.length; i++) ctx.lineTo(this.tail[i].x, this.tail[i].y);
-  ctx.stroke();
-  // Bolinhas decorativas (apenas nos múltiplos de 3)
-  for(let i=3; i<this.tail.length; i+=3){
-    ctx.fillStyle = (i % 6 === 0) ? "#ff3030" : "#ffffff";
-    ctx.beginPath(); ctx.arc(this.tail[i].x, this.tail[i].y, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 0.8; ctx.stroke(); ctx.lineWidth = 2.5;
+  for(let i=1; i<this.tail.length; i++){
+    ctx.strokeStyle = "rgba(20,20,20,0.65)";
+    ctx.beginPath(); ctx.moveTo(this.tail[i-1].x, this.tail[i-1].y); ctx.lineTo(this.tail[i].x, this.tail[i].y); ctx.stroke();
+    if(i % 3 === 0){ ctx.fillStyle = (i % 6 === 0) ? "#ff3030" : "#ffffff"; ctx.beginPath(); ctx.arc(this.tail[i].x, this.tail[i].y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 0.8; ctx.stroke(); ctx.lineWidth = 2.5; }
   }
   ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle + Math.PI / 2);
   if (this.sprite.complete && this.sprite.naturalWidth !== 0) {
@@ -727,10 +696,7 @@ function loop(){
    }
   }
  }
- // Atualiza partículas
- for (let i = particulas.length - 1; i >= 0; i--) { particulas[i].update(); if (particulas[i].alpha <= 0) particulas.splice(i, 1); }
- // Desenha todas as partículas em batch (muito mais rápido que draw() individual)
- drawParticulas();
+ for (let i = particulas.length - 1; i >= 0; i--) { particulas[i].update(); particulas[i].draw(); if (particulas[i].alpha <= 0) particulas.splice(i, 1); }
  for(const p of pipas) p.draw();
  for(let i = pipas.length - 1; i >= 0; i--) { if(pipas[i].dead) { pipas.splice(i, 1); if(waitingQueue.length > 0) pipas.push(waitingQueue.shift()); } }
  requestAnimationFrame(loop);
